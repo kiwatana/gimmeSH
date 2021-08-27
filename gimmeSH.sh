@@ -23,8 +23,7 @@ BPurple='\033[1;35m'      # Purple
 BCyan='\033[1;36m'        # Cyan
 BWhite='\033[1;37m'       # White
 
-# REGREX
-url_regrex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
+
 
 function rev()
 {
@@ -179,7 +178,8 @@ function venom()
 
 function gobuster()
 {
-			echo -e "$BWhite====================== Gobuster ====================="
+
+			echo -e "$BWhite====================== Gobuster (80/443) ====================="
 			if [[ $1 =~ ^https ]]
 			then
 				# HTTPS
@@ -196,7 +196,7 @@ function gobuster()
 
 function ftp()
 {
-			echo -e "$BWhite====================== ftp ====================="
+			echo -e "$BWhite====================== ftp (21) ====================="
 
 			echo -e "[$BGreen FTP $White]"
 		 	echo -e "$BPurple Connection$White"
@@ -306,7 +306,7 @@ function ftp()
 
 function tftp()
 {
-			echo -e "$BWhite====================== tftp ========================="
+			echo -e "$BWhite====================== tftp (69) ========================="
 			echo -e "[$BGreen TFTP $White]"
 			echo -e "$BPurple Enumeration$White"
 			echo -e "$White less _top_20_udp_nmap.txt $Cyan # autorecon - check port 69 or smtp results" 
@@ -329,6 +329,23 @@ function tftp()
 			echo -e "$BWhite====================================================="
 }
 
+function smb()
+{
+			ip_address=`echo $1|cut -d "/" -f 3`
+			share=`echo $1|cut -d "/" -f4-`
+
+			validate_ip $ip_address
+			validate_port $2
+
+			echo -e "$BWhite====================== smb (139,445) ========================="
+			echo -e "[$BGreen SMB $White]"
+			echo -e "$BPurple Enumeration$White"
+			echo -e "$White enum4linux -a -l $BYellow$ip_address" 
+		 	echo -e "$White enum4linux-ng.py -A -C -v $BYellow$ip_address" 
+		 	
+			echo -e "$BWhite====================================================="
+}
+
 function validate_ip()
 {
 	if [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
@@ -341,18 +358,24 @@ function validate_ip()
 }
 function validate_port()
 {
-	if [[ $1 -lt 65536 && $1 -gt 0 ]] 
+	if [ "$1" != "" ]
 		then
-  			:
-		else
-				 	echo -e "Invalid RPORT Value !!!"
-			exit
+
+		if [[ $1 -lt 65536 && $1 -gt 0 ]] 
+			then
+  				:
+			else
+				echo -e "Invalid RPORT Value !!!"
+				exit
 		fi
+	fi
 }
 
 function validate_url()
 {
-	
+	# REGREX
+	url_regrex='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
+
 	if [[ $1 =~ $url_regrex ]]
 		then
   			:
@@ -373,11 +396,13 @@ then
 		 	echo -e "$BGreen	--msf-venom$BWhite 	: Print msfvenom Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --msf-venom LHOST LPORT"
 			echo -e "$BGreen	--gobuster$BWhite 	: Print gobuster Cheatsheet"
-		 	echo -e "			Syntax: gimme.sh --gobuster URL PORT"
+		 	echo -e "			Syntax: gimme.sh --gobuster URL[:RPORT]"
 			echo -e "$BGreen	--ftp $BWhite 		: Print ftp Cheatsheet"
-		 	echo -e "			Syntax: gimme.sh --ftp RHOST RPORT"
-			 echo -e "$BGreen	--tftp $BWhite 		: Print ftp Cheatsheet"
-		 	echo -e "			Syntax: gimme.sh --tftp RHOST RPORT"
+		 	echo -e "			Syntax: gimme.sh --ftp RHOST [RPORT]"
+			echo -e "$BGreen	--tftp $BWhite 		: Print tftp Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --tftp RHOST [RPORT]"
+			echo -e "$BGreen	--smb $BWhite 		: Print tftp Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --smb //RHOST/dir [RPORT]"
 		 	echo -e "$BWhite=================================================================="
 	exit
 fi
@@ -416,7 +441,7 @@ case $1 in
 	"--gobuster")
 		if [ $# -lt 2 ]
 		then
-				 	echo -e "Syntax: gimme.sh --gobuster URL:PORT"
+				 	echo -e "Syntax: gimme.sh --gobuster URL[:RPORT]"
 			exit
 		fi
 		validate_url $2
@@ -454,6 +479,14 @@ case $1 in
 		validate_ip $2
 		validate_port $3
 		tftp $2 $3
+	;;
+	"--smb")
+		if [ $# -lt 2 ] 
+		then
+				 	echo -e "Syntax: gimme.sh --smb //RHOST/dir [RPORT]"
+			exit
+		fi
+		smb $2 $3
 	;;
 
 	*)
