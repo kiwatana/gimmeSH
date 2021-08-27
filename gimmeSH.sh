@@ -307,6 +307,25 @@ function ftp()
 function tftp()
 {
 			echo -e "$BWhite====================== tftp ========================="
+			echo -e "[$BGreen TFTP $White]"
+			echo -e "$BPurple Enumeration$White"
+			echo -e "$White less _top_20_udp_nmap.txt $Cyan # autorecon - check port 69 or smtp results" 
+		 	echo -e "$BPurple Connection$White"
+			echo -e "$White tftp $BYellow$1 $2 $White"
+			echo -e "$BPurple Download Files$White"
+			echo -e "$White tftp> status"
+			echo -e "$White tftp> verbose"
+			echo -e "$White tftp> ascii"
+			echo -e "$White tftp> binary"
+			echo -e "$White tftp> get <file>"
+			echo -e "$BPurple Download Files Recursively$White"
+			echo -e "$White cat <directory> | awk '/[0-9] /{print $9}' > directory.txt"
+			echo -e "$Cyan # vi direcotry.txt and remove . and .."
+			echo -e "$White for file in \`cat directory.txt\`; do echo -e \"get \$file\\\nquit\\\n\"|tftp $BYellow$1 $2$White; done"
+			echo -e "$BPurple Read all files $White"
+			echo -e "$While for file in \$(find . -type f); do echo \">> \$file <<\" && cat \$file; done $Cyan# Include .(dot)file and recursive $White"
+			echo -e "$white for i in *; do echo \">> \$i <<\" && cat \$i; done $Cyan# No .(dot) file and not recursive $White"
+
 			echo -e "$BWhite====================================================="
 }
 
