@@ -342,7 +342,90 @@ function smb()
 			echo -e "$BPurple Enumeration$White"
 			echo -e "$White enum4linux -a -l $BYellow$ip_address" 
 		 	echo -e "$White enum4linux-ng.py -A -C -v $BYellow$ip_address" 
-		 	
+			if [ "$2" != "" ]; then
+				echo -e "$White nmap --script \"safe or smb-enum-*\" -p $BYellow$2 $BYellow$ip_address" 
+			else
+				echo -e "$White nmap --script \"safe or smb-enum-*\" -p 445 $BYellow$ip_address" 
+			fi
+			if [ "$2" != "" ]; then
+				echo -e "$White nmap -v --script=smb-enum* -p T:$BYellow$2 $BYellow$ip_address"
+			else
+				echo -e "$White nmap -v --script=smb-enum* -p T:139,445 $BYellow$ip_address"
+			fi
+			if [ "$2" != "" ]; then
+				echo -e "$White nmap -v --script=smb-vuln* -p T:$BYellow$2 $BYellow$ip_address"
+			else
+				echo -e "$White nmap -v --script=smb-vuln* -p T:139,445 $BYellow$ip_address"
+			fi
+
+			echo -e "$BPurple List shares$White"
+			if [ "$2" != "" ]; then
+				echo -e "$White smbmap -H $BYellow$ip_address $White-P $BYellow$2"
+		 	else
+			 	echo -e "$White smbmap -H $BYellow$ip_address $White"
+			fi
+
+			if [ "$2" != "" ]; then
+				echo -e "$White smbmap -u \"username\" -p \"password\" -H $BYellow$ip_address $White-P $BYellow$2 $Cyan # Creds"
+			else
+				echo -e "$White smbmap -u \"username\" -p \"password\" -H $BYellow$ip_address $Cyan #Creds"
+			fi
+
+			if [ "$2" != "" ]; then
+				echo -e "$White smbmap -u \"username\" -p \"<NT>:<LM>\" -H $BYellow$ip_address $White-P $BYellow$2 $Cyan # Pass-the-Hash"
+			else
+				echo -e "$White smbmap -u \"username\" -p \"<NT>:<LM>\" -H $BYellow$ip_address $Cyan # Pass-the-Hash"
+			fi
+
+			echo -e "$BPurple Samba rpcclient$White"
+			echo -e "$White rpcclient -U \"\" -N $BYellow$ip_address $Cyan # -U:Username -N:No-pass"
+			echo -e "$White rpcclient -U \"usernmae\" $BYellow$ip_address"
+			echo -e "$White password:\"password\""
+			echo -e "$White rpcclient $> enumdomusers"
+			echo -e "$White rpcclient $> enumprinters"
+			echo -e "$White rpcclient $> enum"
+			echo -e "$White rpcclient $> querydominfo"
+
+			echo -e "$BPurple Connect to host$White"
+			echo -e "$White smbclient $BYellow$1 $White-N -L $Cyan # -N:no pass -L:list share"
+			echo -e "$White smbclient $BYellow$1 $White-U $Cyan # anonymous -U:username"
+			echo -e "$White smbclient $BYellow$1 $White-U \"username\" "
+			echo -e "$White smbclient $BYellow\\\\\\\\\\\\\\$ip_address\\\\\\\\$share $Cyan# Win"
+			echo -e "$White smbclient $BYellow\\\\\\\\\\\\\\$ip_address\\\\\\\\$share $White-U $Cyan# Win"
+			echo -e "$White smbclient $BYellow\\\\\\\\\\\\\\$ip_address\\\\\\\\$share $White-U \"username\" $Cyan# Win"
+
+			echo -e "$BPurple Mount share$White"
+			echo -e "$White smbmount $1 /mnt/remote/ -o username=user,password=pass,rw"
+			echo -e "$White sudo mount -t cifs $1 /mnt/share"
+			echo -e "$White sudo mount -t cifs -o "username=user,password=password" $1 /mnt/share"
+
+			echo -e "$BPurple Bruteforce$White"
+			echo -e "$white echo \"username\" > users.txt"
+			echo -e "$white echo \"othername\" >> users.txt"
+			echo -e "$White hydra -L users.txt -P /usr/share/wordlists/rockyou.txt $ip_address smb -V -f $Cyan# -V:verbose -f:stop when finding a match"
+
+			echo -e "$BPurple Download files$White"
+			echo -e "$White smbclient //<IP>/Share -U"
+			echo -e "$White smb: \> mask \"\" "
+			echo -e "$White smb: \> recurse ON"
+			echo -e "$White smb: \> prompt OFF"
+			echo -e "$White smb: \> lcd '/path/to/go/'"
+			echo -e "$White smb: \> mget *"
+
+			echo -e "$BPurple Download files recursively$White"
+			echo -e "$White mkdir download; cd download"
+			echo -e "$White smbget -R smb:$1"
+
+			echo -e "$BPurple find all files and sort them by size$White"
+			echo -e "$White find . -type f  -exec du -h {} + | sort -h"
+
+			echo -e "$BPurple Read all files $White"
+			echo -e "$While for file in \$(find . -type f); do echo \">> \$file <<\" && cat \$file; done $Cyan# Include .(dot)file and recursive $White"
+			echo -e "$white for i in *; do echo \">> \$i <<\" && cat \$i; done $Cyan# No .(dot) file and not recursive $White"
+
+
+
+
 			echo -e "$BWhite====================================================="
 }
 
